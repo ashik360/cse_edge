@@ -1,10 +1,1 @@
-{
-  "auth": {
-    "providers": {
-      "googleSignIn": {
-        "oAuthBrandDisplayName": "CseEdge_Auth",
-        "supportEmail": "ashik4745@gmail.com"
-      }
-    }
-  }
-}
+{"auth":{"providers":{"googleSignIn":{"oAuthBrandDisplayName":"CseEdge_Auth","supportEmail":"ashik4745@gmail.com"}}},"flutter":{"platforms":{"android":{"default":{"projectId":"cseedge-6578a","appId":"1:364699996968:android:92e558522fdb747cbb361d","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"cseedge-6578a","configurations":{"android":"1:364699996968:android:92e558522fdb747cbb361d","ios":"1:364699996968:ios:11da9e6a28c47dfdbb361d","macos":"1:364699996968:ios:11da9e6a28c47dfdbb361d","web":"1:364699996968:web:cc231d884514bbe8bb361d","windows":"1:364699996968:web:6d4ada4a0754c641bb361d"}}}}}}

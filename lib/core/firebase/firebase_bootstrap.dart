@@ -1,4 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cse_edge/firebase_options.dart';
 
 class FirebaseBootstrap {
   FirebaseBootstrap._();
@@ -8,7 +9,9 @@ class FirebaseBootstrap {
 
   static Future<void> initialize() async {
     try {
-      await Firebase.initializeApp();
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
       isAvailable = true;
       errorMessage = null;
     } catch (error) {

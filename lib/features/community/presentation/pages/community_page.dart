@@ -16,7 +16,7 @@ class _CommunityPageState extends State<CommunityPage> {
     final controller = TextEditingController();
     await showDialog<void>(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return AlertDialog(
           title: const Text('Post Resource Request'),
           content: TextField(
@@ -27,7 +27,7 @@ class _CommunityPageState extends State<CommunityPage> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => Navigator.of(dialogContext).pop(),
               child: const Text('Cancel'),
             ),
             FilledButton(
@@ -37,9 +37,8 @@ class _CommunityPageState extends State<CommunityPage> {
                   return;
                 }
                 await _studyCloudService.postResourceRequest(text);
-                if (mounted) {
-                  Navigator.of(context).pop();
-                }
+                if (!mounted) return;
+                Navigator.of(context).pop();
               },
               child: const Text('Post'),
             ),

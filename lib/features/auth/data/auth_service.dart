@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
   AuthService({FirebaseAuth? auth, FirebaseFirestore? firestore})
@@ -40,5 +42,46 @@ class AuthService {
 
   Future<void> signOut() async {
     await auth.signOut();
+  }
+
+  Future<void> signInWithGoogle() async {
+    if (kIsWeb) {
+      final provider = GoogleAuthProvider();
+      final credential = await auth.signInWithPopup(provider);
+      final user = credential.user;
+      if (user != null) {
+        await firestore.collection('users').doc(user.uid).set({
+          'name': user.displayName ?? 'Student',
+          'email': user.email,
+          'photoURL': user.photoURL,
+          'provider': 'google',
+          'updatedAt': FieldValue.serverTimestamp(),
+          'createdAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+      }
+      return;
+    }
+
+    final googleUser = await GoogleSignIn().signIn();
+    if (googleUser == null) {
+      throw Exception('Sign in aborted by user');
+    }
+    final googleAuth = await googleUser.authentication;
+    final oauthCredential = GoogleAuthProvider.credential(
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
+    );
+    final userCred = await auth.signInWithCredential(oauthCredential);
+    final user = userCred.user;
+    if (user != null) {
+      await firestore.collection('users').doc(user.uid).set({
+        'name': user.displayName ?? 'Student',
+        'email': user.email,
+        'photoURL': user.photoURL,
+        'provider': 'google',
+        'updatedAt': FieldValue.serverTimestamp(),
+        'createdAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    }
   }
 }

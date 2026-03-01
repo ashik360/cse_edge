@@ -7,3 +7,4 @@ Future<void> main() async {
   await FirebaseBootstrap.initialize();
   runApp(const CseEdgeApp());
 }
+
