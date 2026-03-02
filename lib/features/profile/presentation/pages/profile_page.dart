@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cse_edge/core/firebase/firebase_bootstrap.dart';
 import 'package:cse_edge/features/auth/data/auth_service.dart';
 import 'package:cse_edge/features/study/data/study_cloud_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -26,26 +27,52 @@ class ProfilePage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          const Row(
+          Row(
             children: [
-              CircleAvatar(radius: 28, child: Icon(Icons.person, size: 32)),
-              SizedBox(width: 12),
+              CircleAvatar(
+                radius: 28,
+                backgroundImage: FirebaseBootstrap.isAvailable &&
+                        FirebaseAuth.instance.currentUser?.photoURL != null
+                    ? NetworkImage(
+                        FirebaseAuth.instance.currentUser!.photoURL!,
+                      )
+                    : null,
+                child: const Icon(Icons.person, size: 32),
+              ),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'CSE Student',
-                      style: TextStyle(
+                      FirebaseBootstrap.isAvailable &&
+                              FirebaseAuth.instance.currentUser != null
+                          ? (FirebaseAuth.instance.currentUser!.displayName ??
+                              FirebaseAuth.instance.currentUser!.email ??
+                              'Student')
+                          : 'Demo User',
+                      style: const TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 20,
                       ),
                     ),
-                    Text('First Semester'),
+                    Text(
+                      FirebaseBootstrap.isAvailable &&
+                              FirebaseAuth.instance.currentUser != null
+                          ? (FirebaseAuth.instance.currentUser!.email ?? '')
+                          : 'Offline Demo',
+                    ),
                   ],
                 ),
               ),
-              Chip(label: Text('Night Mode Ready')),
+              Chip(
+                label: Text(
+                  FirebaseBootstrap.isAvailable &&
+                          FirebaseAuth.instance.currentUser != null
+                      ? 'Signed In'
+                      : 'Demo',
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 24),
