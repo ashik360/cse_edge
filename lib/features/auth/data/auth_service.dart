@@ -47,17 +47,25 @@ class AuthService {
   Future<void> signInWithGoogle() async {
     if (kIsWeb) {
       final provider = GoogleAuthProvider();
-      final credential = await auth.signInWithPopup(provider);
-      final user = credential.user;
-      if (user != null) {
-        await firestore.collection('users').doc(user.uid).set({
-          'name': user.displayName ?? 'Student',
-          'email': user.email,
-          'photoURL': user.photoURL,
-          'provider': 'google',
-          'updatedAt': FieldValue.serverTimestamp(),
-          'createdAt': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
+      try {
+        final credential = await auth.signInWithPopup(provider);
+        final user = credential.user;
+        if (user != null) {
+          await firestore.collection('users').doc(user.uid).set({
+            'name': user.displayName ?? 'Student',
+            'email': user.email,
+            'photoURL': user.photoURL,
+            'provider': 'google',
+            'updatedAt': FieldValue.serverTimestamp(),
+            'createdAt': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
+        }
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'popup-blocked') {
+          await auth.signInWithRedirect(provider);
+          return;
+        }
+        rethrow;
       }
       return;
     }
