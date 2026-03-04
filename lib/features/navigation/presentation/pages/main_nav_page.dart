@@ -2,6 +2,7 @@ import 'package:cse_edge/features/community/presentation/pages/community_page.da
 import 'package:cse_edge/features/profile/presentation/pages/profile_page.dart';
 import 'package:cse_edge/features/resources/presentation/pages/resource_vault_page.dart';
 import 'package:cse_edge/features/subjects/presentation/pages/subjects_home_page.dart';
+import 'package:cse_edge/core/constants/app_strings.dart';
 import 'package:flutter/material.dart';
 
 class MainNavPage extends StatefulWidget {
@@ -32,22 +33,22 @@ class _MainNavPageState extends State<MainNavPage> {
           NavigationDestination(
             icon: Icon(Icons.menu_book_outlined),
             selectedIcon: Icon(Icons.menu_book),
-            label: 'Subjects',
+            label: AppStrings.navSubjects,
           ),
           NavigationDestination(
             icon: Icon(Icons.quiz_outlined),
             selectedIcon: Icon(Icons.quiz),
-            label: 'Practice',
+            label: AppStrings.navPractice,
           ),
           NavigationDestination(
             icon: Icon(Icons.forum_outlined),
             selectedIcon: Icon(Icons.forum),
-            label: 'Community',
+            label: AppStrings.navCommunity,
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),
             selectedIcon: Icon(Icons.person),
-            label: 'Profile',
+            label: AppStrings.navProfile,
           ),
         ],
       ),

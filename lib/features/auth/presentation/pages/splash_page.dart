@@ -1,6 +1,8 @@
 import 'dart:async';
 
+import 'package:cse_edge/core/constants/app_images.dart';
 import 'package:cse_edge/features/auth/presentation/pages/auth_gate_page.dart';
+import 'package:cse_edge/core/constants/app_strings.dart';
 import 'package:flutter/material.dart';
 
 class SplashPage extends StatefulWidget {
@@ -32,9 +34,12 @@ class _SplashPageState extends State<SplashPage> {
     return Scaffold(
       body: Container(
         width: double.infinity,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFF0A6BFF), Color(0xFF62A2FF)],
+            colors: [
+              Theme.of(context).colorScheme.primary,
+              Theme.of(context).colorScheme.primaryContainer,
+            ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -42,10 +47,12 @@ class _SplashPageState extends State<SplashPage> {
         child: const Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.school_rounded, color: Colors.white, size: 88),
+            SizedBox(
+              width: 200,
+              child: Image(image: AssetImage(AppImages.logo),fit: BoxFit.fitWidth,),),
             SizedBox(height: 16),
             Text(
-              'CSE EDGE',
+              AppStrings.appName,
               style: TextStyle(
                 fontSize: 38,
                 color: Colors.white,
@@ -54,7 +61,7 @@ class _SplashPageState extends State<SplashPage> {
             ),
             SizedBox(height: 8),
             Text(
-              'Smart Exam Preparation Companion',
+              AppStrings.splashTagline,
               style: TextStyle(
                 fontSize: 16,
                 color: Colors.white,

@@ -19,25 +19,26 @@ class CourseCard extends StatelessWidget {
               children: [
                 Text(
                   course.code,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16,
-                  ),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 const Spacer(),
                 Text(
                   '${course.completedUnits}/${course.units.length}',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF0A6BFF),
-                  ),
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
               ],
             ),
             const SizedBox(height: 4),
             Text(
               course.title,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: 14),
             ...course.units.map(
@@ -71,27 +72,30 @@ class _UnitTile extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 24,
-                backgroundColor: const Color(0xFFE7F0FF),
+                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
                 child: Icon(
                   _unitIcon(unit.type),
-                  color: const Color(0xFF0A6BFF),
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   unit.title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
-                  ),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
               ),
               IconButton(
                 onPressed: () {},
                 icon: Icon(
-                  unit.completed ? Icons.check_circle : Icons.bookmark_border,
-                  color: unit.completed ? Colors.green : null,
+                  unit.completed
+                      ? Icons.check_circle
+                      : Icons.bookmark_border,
+                  color: unit.completed
+                      ? Theme.of(context).colorScheme.secondary
+                      : null,
                 ),
               ),
             ],

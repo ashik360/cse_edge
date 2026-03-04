@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cse_edge/core/constants/app_strings.dart';
 
 class ResourceVaultPage extends StatelessWidget {
   const ResourceVaultPage({super.key});
@@ -7,19 +8,19 @@ class ResourceVaultPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Resource Vault'),
+        title: const Text(AppStrings.resourceVault),
         actions: [IconButton(onPressed: () {}, icon: const Icon(Icons.search))],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          const Row(
+          Row(
             children: [
               Expanded(
                 child: _ScoreCard(
                   label: 'Pending',
                   value: '6',
-                  color: Color(0xFFE45245),
+                  color: Theme.of(context).colorScheme.error,
                 ),
               ),
               SizedBox(width: 10),
@@ -27,7 +28,7 @@ class ResourceVaultPage extends StatelessWidget {
                 child: _ScoreCard(
                   label: 'Avg Score',
                   value: '78%',
-                  color: Color(0xFF0A6BFF),
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               ),
               SizedBox(width: 10),
@@ -35,7 +36,7 @@ class ResourceVaultPage extends StatelessWidget {
                 child: _ScoreCard(
                   label: 'Solved',
                   value: '15',
-                  color: Color(0xFF2EA44F),
+                  color: Theme.of(context).colorScheme.secondary,
                 ),
               ),
             ],
@@ -43,23 +44,23 @@ class ResourceVaultPage extends StatelessWidget {
           const SizedBox(height: 16),
           Container(
             decoration: BoxDecoration(
-              color: const Color(0xFFDDEBFF),
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(16),
             ),
             child: ListTile(
-              leading: const Icon(
+              leading: Icon(
                 Icons.bookmark_border,
-                color: Color(0xFF0A6BFF),
+                color: Theme.of(context).colorScheme.primary,
               ),
               title: const Text(
                 'Saved Notes and Sheets',
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
-              trailing: const Text(
+              trailing: Text(
                 '12',
                 style: TextStyle(
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF0A6BFF),
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               ),
               onTap: () {},
@@ -151,12 +152,16 @@ class _QuestionBankTile extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: highlighted ? const Color(0xFFDDEBFF) : Colors.white,
+        color: highlighted
+            ? Theme.of(context).colorScheme.surfaceContainerHighest
+            : Colors.white,
         borderRadius: BorderRadius.circular(14),
       ),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: const Color(0xFFE7F0FF),
+          backgroundColor: Theme.of(
+            context,
+          ).colorScheme.surfaceContainerHighest,
           child: Icon(
             Icons.quiz_outlined,
             color: Theme.of(context).colorScheme.primary,

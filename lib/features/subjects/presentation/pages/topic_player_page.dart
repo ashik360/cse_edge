@@ -1,4 +1,5 @@
 import 'package:cse_edge/features/subjects/domain/models/course.dart';
+import 'package:cse_edge/core/constants/app_strings.dart';
 import 'package:flutter/material.dart';
 
 class TopicPlayerPage extends StatelessWidget {
@@ -23,12 +24,11 @@ class TopicPlayerPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'About this topic',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.primary,
-                fontWeight: FontWeight.w700,
-                fontSize: 24,
-              ),
+              AppStrings.topicAboutTitle,
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: 12),
             Container(
@@ -36,8 +36,14 @@ class TopicPlayerPage extends StatelessWidget {
               width: double.infinity,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(18),
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF1976FF), Color(0xFF63A0FF)],
+                gradient: LinearGradient(
+                  colors: [
+                    Theme.of(context).colorScheme.primary,
+                    Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withAlpha((0.7 * 255).round()),
+                  ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -49,19 +55,21 @@ class TopicPlayerPage extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               topicTitle,
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 30),
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Focus on important definitions, formulas, and frequently asked exam problems.',
-              style: TextStyle(fontSize: 16),
+            Text(
+              AppStrings.topicDescription,
+              style: Theme.of(context).textTheme.bodyLarge,
             ),
             const Spacer(),
             SizedBox(
               width: double.infinity,
               child: FilledButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Continue'),
+                child: const Text(AppStrings.topicContinue),
               ),
             ),
           ],

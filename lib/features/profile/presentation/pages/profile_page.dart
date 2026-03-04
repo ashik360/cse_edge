@@ -3,9 +3,35 @@ import 'package:cse_edge/core/firebase/firebase_bootstrap.dart';
 import 'package:cse_edge/features/auth/data/auth_service.dart';
 import 'package:cse_edge/features/study/data/study_cloud_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
+
+  Future<Map<String, dynamic>?> _loadUserProfile() async {
+    if (!FirebaseBootstrap.isAvailable) {
+      return null;
+    }
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return null;
+    }
+    final doc =
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+    if (!doc.exists) {
+      return {
+        'name': user.displayName,
+        'email': user.email,
+        'photoURL': user.photoURL,
+      };
+    }
+    final data = doc.data() as Map<String, dynamic>? ?? {};
+    return {
+      'name': data['name'] ?? user.displayName,
+      'email': data['email'] ?? user.email,
+      'photoURL': data['photoURL'] ?? user.photoURL,
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,53 +53,55 @@ class ProfilePage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 28,
-                backgroundImage: FirebaseBootstrap.isAvailable &&
-                        FirebaseAuth.instance.currentUser?.photoURL != null
-                    ? NetworkImage(
-                        FirebaseAuth.instance.currentUser!.photoURL!,
-                      )
-                    : null,
-                child: const Icon(Icons.person, size: 32),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      FirebaseBootstrap.isAvailable &&
-                              FirebaseAuth.instance.currentUser != null
-                          ? (FirebaseAuth.instance.currentUser!.displayName ??
-                              FirebaseAuth.instance.currentUser!.email ??
-                              'Student')
-                          : 'Demo User',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 20,
-                      ),
+          FutureBuilder<Map<String, dynamic>?>(
+            future: _loadUserProfile(),
+            builder: (context, snapshot) {
+              final user = FirebaseAuth.instance.currentUser;
+              final hasUser = FirebaseBootstrap.isAvailable && user != null;
+              final data = snapshot.data;
+              final displayName = hasUser
+                  ? (data?['name'] as String?) ??
+                      user!.displayName ??
+                      user.email ??
+                      'Student'
+                  : 'Demo User';
+              final email = hasUser
+                  ? (data?['email'] as String?) ?? user!.email ?? ''
+                  : 'Offline Demo';
+              final photoUrl =
+                  hasUser ? (data?['photoURL'] as String?) ?? user!.photoURL : null;
+              final statusLabel = hasUser ? 'Signed In' : 'Demo';
+
+              return Row(
+                children: [
+                  CircleAvatar(
+                    radius: 28,
+                    backgroundImage:
+                        photoUrl != null ? NetworkImage(photoUrl) : null,
+                    child: const Icon(Icons.person, size: 32),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          displayName,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 20,
+                          ),
+                        ),
+                        Text(email),
+                      ],
                     ),
-                    Text(
-                      FirebaseBootstrap.isAvailable &&
-                              FirebaseAuth.instance.currentUser != null
-                          ? (FirebaseAuth.instance.currentUser!.email ?? '')
-                          : 'Offline Demo',
-                    ),
-                  ],
-                ),
-              ),
-              Chip(
-                label: Text(
-                  FirebaseBootstrap.isAvailable &&
-                          FirebaseAuth.instance.currentUser != null
-                      ? 'Signed In'
-                      : 'Demo',
-                ),
-              ),
-            ],
+                  ),
+                  Chip(
+                    label: Text(statusLabel),
+                  ),
+                ],
+              );
+            },
           ),
           const SizedBox(height: 24),
           const Text(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cse_edge/core/constants/app_strings.dart';
 import 'package:cse_edge/features/study/data/study_cloud_service.dart';
 import 'package:cse_edge/features/study/domain/models/resource_request.dart';
 
@@ -52,7 +53,7 @@ class _CommunityPageState extends State<CommunityPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Community'),
+        title: const Text(AppStrings.communityTitle),
         actions: [IconButton(onPressed: () {}, icon: const Icon(Icons.search))],
       ),
       body: ListView(
@@ -62,7 +63,7 @@ class _CommunityPageState extends State<CommunityPage> {
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(18),
-              color: const Color(0xFFDDEBFF),
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
             ),
             child: const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -82,12 +83,12 @@ class _CommunityPageState extends State<CommunityPage> {
           const SizedBox(height: 14),
           FilledButton(
             onPressed: _showRequestDialog,
-            child: const Text('Post Resource Request'),
+            child: const Text(AppStrings.postResourceRequest),
           ),
           const SizedBox(height: 22),
-          const Text(
-            'Recent Requests',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+          Text(
+            AppStrings.recentRequests,
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 10),
           StreamBuilder<List<ResourceRequest>>(
@@ -146,8 +147,8 @@ class _RequestTile extends StatelessWidget {
         subtitle: Text(subtitle),
         trailing: Text(
           status,
-          style: const TextStyle(
-            color: Color(0xFF0A6BFF),
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.primary,
             fontWeight: FontWeight.w700,
           ),
         ),

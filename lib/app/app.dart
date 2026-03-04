@@ -1,4 +1,5 @@
 import 'package:cse_edge/core/theme/app_theme.dart';
+import 'package:cse_edge/core/constants/app_strings.dart';
 import 'package:cse_edge/features/auth/presentation/pages/splash_page.dart';
 import 'package:flutter/material.dart';
 
@@ -8,9 +9,11 @@ class CseEdgeApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'CSE EDGE',
+      title: AppStrings.appName,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system,
       home: const SplashPage(),
     );
   }

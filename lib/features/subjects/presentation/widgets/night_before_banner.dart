@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cse_edge/core/constants/app_strings.dart';
 
 class NightBeforeBanner extends StatelessWidget {
   const NightBeforeBanner({super.key});
@@ -10,7 +11,7 @@ class NightBeforeBanner extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        color: const Color(0xFFDDEBFF),
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -18,11 +19,11 @@ class NightBeforeBanner extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: const Color(0xFF0A6BFF),
+              color: Theme.of(context).colorScheme.primary,
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Text(
-              'Night-Before Exam Mode',
+              AppStrings.nightBeforeTitle,
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w700,
@@ -31,14 +32,14 @@ class NightBeforeBanner extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           const Text(
-            'Condensed notes, probable questions, and formula recap in one place.',
+            AppStrings.nightBeforeDescription,
             style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
           ),
           const SizedBox(height: 8),
           TextButton(
             onPressed: () {},
             child: const Text(
-              'Start Fast Revision',
+              AppStrings.nightBeforeCta,
               style: TextStyle(fontWeight: FontWeight.w700),
             ),
           ),

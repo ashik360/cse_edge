@@ -1,4 +1,5 @@
 import 'package:cse_edge/features/auth/data/auth_service.dart';
+import 'package:cse_edge/core/constants/app_strings.dart';
 import 'package:flutter/material.dart';
 
 class AuthPage extends StatefulWidget {
@@ -88,20 +89,23 @@ class _AuthPageState extends State<AuthPage> {
           padding: const EdgeInsets.all(20),
           children: [
             const SizedBox(height: 24),
-            const Text(
-              'CSE EDGE',
+            Text(
+              AppStrings.appName,
               style: TextStyle(
                 fontWeight: FontWeight.w900,
                 fontSize: 36,
-                color: Color(0xFF0A6BFF),
+                color: Theme.of(context).colorScheme.primary,
               ),
             ),
             const SizedBox(height: 6),
             Text(
-              _isLogin
-                  ? 'Login to continue exam prep'
-                  : 'Create your exam prep account',
-              style: const TextStyle(fontSize: 16, color: Colors.black87),
+              _isLogin ? AppStrings.loginSubtitle : AppStrings.signupSubtitle,
+              style: TextStyle(
+                fontSize: 16,
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.8),
+              ),
             ),
             const SizedBox(height: 24),
             Form(
@@ -180,23 +184,15 @@ class _AuthPageState extends State<AuthPage> {
                     width: double.infinity,
                     child: OutlinedButton.icon(
                       onPressed: _isLoading ? null : _googleSignIn,
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.account_circle_outlined,
-                        color: Colors.black87,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
-                      label: const Text(
-                        'Continue with Google',
+                      label: Text(
+                        AppStrings.continueWithGoogle,
                         style: TextStyle(
-                          color: Colors.black87,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        side: BorderSide(color: Colors.grey.shade300),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
                     ),

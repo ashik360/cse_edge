@@ -15,11 +15,17 @@ class CourseUnit {
 }
 
 class Course {
-  const Course({required this.code, required this.title, required this.units});
+  const Course({
+    required this.code,
+    required this.title,
+    required this.units,
+    required this.semester,
+  });
 
   final String code;
   final String title;
   final List<CourseUnit> units;
+  final int semester;
 
   int get completedUnits => units.where((unit) => unit.completed).length;
 }
