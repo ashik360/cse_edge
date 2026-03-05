@@ -24,27 +24,54 @@ class CourseCard extends StatelessWidget {
                       ),
                 ),
                 const Spacer(),
-                Text(
-                  '${course.completedUnits}/${course.units.length}',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
+                const Icon(Icons.more_vert, size: 18),
               ],
             ),
-            const SizedBox(height: 4),
             Text(
               course.title,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
+            
+            // --- SECTION 1: PREVIOUS QUESTIONS & QUIZ ---
+            _buildSectionHeader(context, "Subject Exam Essentials"),
+            _UnitTile(
+              unit: const CourseUnit(title: 'Subject Previous Questions', type: UnitType.previousQuestion),
+              onTap: () => onTapUnit(const CourseUnit(title: 'Previous Questions', type: UnitType.previousQuestion)),
+            ),
+            _UnitTile(
+              unit: const CourseUnit(title: 'PYQ Based Quiz Test', type: UnitType.quiz),
+              onTap: () => onTapUnit(const CourseUnit(title: 'PYQ Based Quiz', type: UnitType.quiz)),
+            ),
+            
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8.0),
+              child: Divider(),
+            ),
+
+            // --- SECTION 2: CHAPTERS & VIDEOS ---
+            _buildSectionHeader(context, "Chapters & Lectures"),
             ...course.units.map(
               (unit) => _UnitTile(unit: unit, onTap: () => onTapUnit(unit)),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(BuildContext context, String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Text(
+        title.toUpperCase(),
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 1.2,
+          color: Theme.of(context).colorScheme.primary.withOpacity(0.8),
         ),
       ),
     );
@@ -67,37 +94,22 @@ class _UnitTile extends StatelessWidget {
         onTap: enabled ? onTap : null,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          padding: const EdgeInsets.symmetric(vertical: 10),
           child: Row(
             children: [
-              CircleAvatar(
-                radius: 24,
-                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                child: Icon(
-                  _unitIcon(unit.type),
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+              Icon(
+                _unitIcon(unit.type),
+                size: 20,
+                color: Theme.of(context).colorScheme.primary,
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 14),
               Expanded(
                 child: Text(
                   unit.title,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                  style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 15),
                 ),
               ),
-              IconButton(
-                onPressed: () {},
-                icon: Icon(
-                  unit.completed
-                      ? Icons.check_circle
-                      : Icons.bookmark_border,
-                  color: unit.completed
-                      ? Theme.of(context).colorScheme.secondary
-                      : null,
-                ),
-              ),
+              const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
             ],
           ),
         ),
@@ -107,16 +119,11 @@ class _UnitTile extends StatelessWidget {
 
   IconData _unitIcon(UnitType type) {
     switch (type) {
-      case UnitType.note:
-        return Icons.description_outlined;
-      case UnitType.quiz:
-        return Icons.quiz_outlined;
-      case UnitType.flashcard:
-        return Icons.style_outlined;
-      case UnitType.video:
-        return Icons.play_circle_outline;
-      case UnitType.mockTest:
-        return Icons.fact_check_outlined;
+      case UnitType.note: return Icons.description_outlined;
+      case UnitType.quiz: return Icons.quiz_outlined;
+      case UnitType.video: return Icons.play_circle_outline;
+      case UnitType.previousQuestion: return Icons.history_edu;
+      default: return Icons.circle_outlined;
     }
   }
 }

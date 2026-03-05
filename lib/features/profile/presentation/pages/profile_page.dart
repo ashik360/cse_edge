@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cse_edge/core/firebase/firebase_bootstrap.dart';
 import 'package:cse_edge/features/auth/data/auth_service.dart';
 import 'package:cse_edge/features/study/data/study_cloud_service.dart';
+import 'package:cse_edge/core/firebase/notification_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -78,7 +79,7 @@ class ProfilePage extends StatelessWidget {
                     radius: 28,
                     backgroundImage:
                         photoUrl != null ? NetworkImage(photoUrl) : null,
-                    child: const Icon(Icons.person, size: 32),
+                    child: photoUrl == null ? const Icon(Icons.person, size: 32) : null,
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -103,7 +104,59 @@ class ProfilePage extends StatelessWidget {
               );
             },
           ),
-          const SizedBox(height: 24),
+          
+          const SizedBox(height: 32),
+          
+          // --- App Settings & Testing Section ---
+          const Text(
+            'App Settings & Testing',
+            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: ListTile(
+              leading: const Icon(Icons.notification_important, color: Colors.orange),
+              title: const Text("Test Local Notification"),
+              subtitle: const Text("Verify if pop-ups are working"),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () async {
+                try {
+                  // Call the robust test method
+                  await NotificationService.showTestNotification();
+                  
+                  // Provide user feedback that the call succeeded
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Test notification sent! Check your tray."),
+                        backgroundColor: Colors.green,
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  // Prevent red screen crashes and show exactly what failed
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Error: $e"),
+                        backgroundColor: Colors.red,
+                        duration: const Duration(seconds: 4),
+                      ),
+                    );
+                  }
+                }
+              },
+            ),
+          ),
+
+          const SizedBox(height: 32),
+
+          // --- Exam Progress Section ---
           const Text(
             'Exam Progress',
             style: TextStyle(fontWeight: FontWeight.w700, fontSize: 22),
@@ -174,6 +227,11 @@ class ProfilePage extends StatelessWidget {
                 solvedMcq: 320,
                 mockTests: 8,
               );
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Progress Synced to Firebase")),
+                );
+              }
             },
             child: const Text('Sync Progress to Firebase'),
           ),
@@ -195,16 +253,16 @@ class _InfoCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.4),
       ),
       child: Column(
         children: [
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.w800,
               fontSize: 26,
-              color: Color(0xFF0A6BFF),
+              color: Theme.of(context).colorScheme.primary,
             ),
           ),
           const SizedBox(height: 4),
@@ -228,13 +286,13 @@ class _DayChip extends StatelessWidget {
       height: 42,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        color: active ? const Color(0xFF0A6BFF) : Colors.white,
+        color: active ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.surfaceContainerHighest,
       ),
       child: Center(
         child: Text(
           day,
           style: TextStyle(
-            color: active ? Colors.white : Colors.black87,
+            color: active ? Colors.blue : Theme.of(context).colorScheme.onSurface,
             fontWeight: FontWeight.w700,
           ),
         ),

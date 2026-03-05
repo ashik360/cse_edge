@@ -1,3 +1,4 @@
+import 'package:cse_edge/features/subjects/presentation/pages/night_before_page.dart';
 import 'package:flutter/material.dart';
 import 'package:cse_edge/core/constants/app_strings.dart';
 
@@ -36,8 +37,17 @@ class NightBeforeBanner extends StatelessWidget {
             style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
           ),
           const SizedBox(height: 8),
+          // Inside night_before_banner.dart, update the TextButton onPressed:
           TextButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const NightBeforePage(
+                    courseCode: "CSE 311",
+                  ), // Pass current course
+                ),
+              );
+            },
             child: const Text(
               AppStrings.nightBeforeCta,
               style: TextStyle(fontWeight: FontWeight.w700),

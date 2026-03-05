@@ -1,4 +1,5 @@
 import 'package:cse_edge/core/constants/app_strings.dart';
+import 'package:cse_edge/core/firebase/notification_service.dart';
 import 'package:cse_edge/features/subjects/data/sample_course_data.dart';
 import 'package:cse_edge/features/subjects/domain/models/course.dart';
 import 'package:cse_edge/features/subjects/presentation/pages/topic_player_page.dart';
@@ -14,10 +15,79 @@ class SubjectsHomePage extends StatefulWidget {
 }
 
 class _SubjectsHomePageState extends State<SubjectsHomePage> {
+  int _selectedYear = 1;
   int _selectedSemester = 1;
+  // Inside _SubjectsHomePageState
+@override
+void initState() {
+  super.initState();
+  _setupNotifications();
+}
+
+Future<void> _setupNotifications() async {
+  // Automatically subscribe to the selected semester's updates
+  for (var course in _filteredCourses) {
+    await NotificationService.subscribeToCourse(course.code);
+  }
+}
+
+// Also call _setupNotifications() inside your setState when changing semesters
 
   List<Course> get _filteredCourses {
-    return sampleCourses.where((c) => c.semester == _selectedSemester).toList();
+    return sampleCourses
+        .where((c) => c.year == _selectedYear && c.semester == _selectedSemester)
+        .toList();
+  }
+
+  void _showSemesterPicker() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Select Academic Session',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const Divider(),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: 4, // 4 Years
+                  itemBuilder: (context, yearIndex) {
+                    final year = yearIndex + 1;
+                    return ExpansionTile(
+                      leading: const Icon(Icons.calendar_today_outlined),
+                      title: Text('Year $year'),
+                      children: [1, 2].map((sem) {
+                        return ListTile(
+                          title: Text('Semester $sem'),
+                          onTap: () {
+                            setState(() {
+                              _selectedYear = year;
+                              _selectedSemester = sem;
+                            });
+                            Navigator.pop(context);
+                          },
+                          trailing: (_selectedYear == year && _selectedSemester == sem)
+                              ? Icon(Icons.check_circle, color: Theme.of(context).primaryColor)
+                              : null,
+                        );
+                      }).toList(),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -38,65 +108,44 @@ class _SubjectsHomePageState extends State<SubjectsHomePage> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
         children: [
-          _buildSemesterSelector(context),
-          const SizedBox(height: 8),
-          Text(
-            AppStrings.examReadinessProgress,
-            style: Theme.of(context).textTheme.bodySmall,
+          // New Selector Design
+          InkWell(
+            onTap: _showSemesterPicker,
+            child: Row(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Year $_selectedYear", style: const TextStyle(fontSize: 12)),
+                    Text(
+                      "Semester $_selectedSemester",
+                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 12),
+                const Icon(Icons.expand_more_rounded),
+              ],
+            ),
           ),
-          const SizedBox(height: 8),
-          LinearProgressIndicator(
-            value: 0.42,
-            color: Theme.of(context).colorScheme.primary,
-            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-          ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
           const NightBeforeBanner(),
           const SizedBox(height: 20),
-          ..._filteredCourses.map(
-            (course) => Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: CourseCard(
-                course: course,
-                onTapUnit: (unit) => _openTopic(context, course, unit),
+          if (_filteredCourses.isEmpty)
+            const Center(child: Text("No courses added for this semester yet."))
+          else
+            ..._filteredCourses.map(
+              (course) => Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: CourseCard(
+                  course: course,
+                  onTapUnit: (unit) => _openTopic(context, course, unit),
+                ),
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSemesterSelector(BuildContext context) {
-    return PopupMenuButton<int>(
-      initialValue: _selectedSemester,
-      onSelected: (int semester) {
-        setState(() {
-          _selectedSemester = semester;
-        });
-      },
-      itemBuilder: (BuildContext context) {
-        return List.generate(8, (index) => index + 1).map((int semester) {
-          return PopupMenuItem<int>(
-            value: semester,
-            child: Text('Semester $semester'),
-          );
-        }).toList();
-      },
-      child: Row(
-        children: [
-          Text(
-            'Semester $_selectedSemester',
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Icon(
-            Icons.keyboard_arrow_down_rounded,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
         ],
       ),
     );
