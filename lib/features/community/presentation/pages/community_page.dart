@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cse_edge/core/constants/app_strings.dart';
 import 'package:cse_edge/features/study/data/study_cloud_service.dart';
-import 'package:cse_edge/features/study/domain/models/resource_request.dart';
+import 'package:cse_edge/features/study/domain/models/study_resource.dart';
 
 class CommunityPage extends StatefulWidget {
   const CommunityPage({super.key});
@@ -13,6 +13,7 @@ class CommunityPage extends StatefulWidget {
 class _CommunityPageState extends State<CommunityPage> {
   final StudyCloudService _studyCloudService = StudyCloudService();
 
+  // Your exact Firebase request logic remains unchanged
   Future<void> _showRequestDialog() async {
     final controller = TextEditingController();
     await showDialog<void>(
@@ -51,108 +52,237 @@ class _CommunityPageState extends State<CommunityPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(AppStrings.communityTitle),
-        actions: [IconButton(onPressed: () {}, icon: const Icon(Icons.search))],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(18),
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            AppStrings.communityTitle,
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.search),
+              onPressed: () {},
             ),
-            child: const Column(
+          ],
+          bottom: const TabBar(
+            tabs: [
+              Tab(icon: Icon(Icons.forum_outlined), text: 'Discussions'),
+              Tab(icon: Icon(Icons.folder_shared_outlined), text: 'Resource Request'),
+            ],
+          ),
+        ),
+        body: TabBarView(
+          children: [
+            _buildDiscussionsTab(context),
+            _buildResourceRequestTab(context),
+          ],
+        ),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: _showRequestDialog, // Wired to your Firebase logic
+          icon: const Icon(Icons.edit),
+          label: const Text('New Post'),
+        ),
+      ),
+    );
+  }
+
+  // ==========================================
+  // TAB 1: DISCUSSIONS (MOCK DATA FOR NOW)
+  // ==========================================
+  Widget _buildDiscussionsTab(BuildContext context) {
+    // You can replace this with another StreamBuilder later for Q&A posts
+    final mockDiscussions = [
+      {
+        'name': 'Rakib Hasan',
+        'time': '2 hrs ago',
+        'course': 'CSE 311',
+        'question': 'Can someone explain the difference between 3NF and BCNF with a simple example? I am stuck on the anomaly part.',
+        'upvotes': 12,
+        'comments': 4,
+      },
+      {
+        'name': 'Sadia Rahman',
+        'time': '5 hrs ago',
+        'course': 'CSE 101',
+        'question': 'Why does my C program crash when I try to return a local array from a function? What is the correct way to do this?',
+        'upvotes': 24,
+        'comments': 7,
+      },
+    ];
+
+    return ListView.builder(
+      padding: const EdgeInsets.only(top: 16, bottom: 80, left: 16, right: 16),
+      itemCount: mockDiscussions.length,
+      itemBuilder: (context, index) {
+        final post = mockDiscussions[index];
+        return Card(
+          margin: const EdgeInsets.only(bottom: 16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Student-to-Student Help',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+                Row(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                      child: Text(
+                        (post['name'] as String)[0],
+                        style: TextStyle(color: Theme.of(context).colorScheme.onPrimaryContainer),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            post['name'] as String,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            post['time'] as String,
+                            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.secondaryContainer,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        post['course'] as String,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSecondaryContainer,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 16),
                 Text(
-                  'Request slides, sheets, and short notes from peers. Classmates get notified instantly.',
-                  style: TextStyle(fontSize: 15),
+                  post['question'] as String,
+                  style: const TextStyle(fontSize: 15, height: 1.4),
+                ),
+                const SizedBox(height: 16),
+                const Divider(height: 1),
+                Row(
+                  children: [
+                    TextButton.icon(
+                      onPressed: () {},
+                      icon: const Icon(Icons.thumb_up_alt_outlined, size: 18),
+                      label: Text('${post['upvotes']} Upvotes'),
+                    ),
+                    const SizedBox(width: 16),
+                    TextButton.icon(
+                      onPressed: () {},
+                      icon: const Icon(Icons.comment_outlined, size: 18),
+                      label: Text('${post['comments']} Comments'),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 14),
-          FilledButton(
-            onPressed: _showRequestDialog,
-            child: const Text(AppStrings.postResourceRequest),
-          ),
-          const SizedBox(height: 22),
-          Text(
-            AppStrings.recentRequests,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 10),
-          StreamBuilder<List<ResourceRequest>>(
-            stream: _studyCloudService.watchResourceRequests(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              final requests = snapshot.data ?? const [];
-              if (requests.isEmpty) {
-                return const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 12),
-                  child: Text('No requests posted yet.'),
-                );
-              }
-              return Column(
-                children: requests
-                    .map(
-                      (request) => _RequestTile(
-                        title: request.title,
-                        subtitle:
-                            'Posted by ${request.authorName}, ${request.createdAtLabel}',
-                        status: request.replyCount == 0
-                            ? 'No reply yet'
-                            : '${request.replyCount} replies',
-                      ),
-                    )
-                    .toList(),
-              );
-            },
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
-}
 
-class _RequestTile extends StatelessWidget {
-  const _RequestTile({
-    required this.title,
-    required this.subtitle,
-    required this.status,
-  });
+  // ==========================================
+  // TAB 2: RESOURCE VAULT (REAL FIREBASE DATA)
+  // ==========================================
+  Widget _buildResourceRequestTab(BuildContext context) {
+    return StreamBuilder<List<ResourceRequest>>(
+      stream: _studyCloudService.watchResourceRequests(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        
+        final requests = snapshot.data ?? const [];
+        
+        if (requests.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.folder_open_rounded, size: 64, color: Colors.grey.shade400),
+                const SizedBox(height: 16),
+                const Text(
+                  'No requests posted yet.',
+                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                ),
+              ],
+            ),
+          );
+        }
 
-  final String title;
-  final String subtitle;
-  final String status;
+        return ListView.builder(
+          padding: const EdgeInsets.only(top: 16, bottom: 80, left: 16, right: 16),
+          itemCount: requests.length,
+          itemBuilder: (context, index) {
+            final request = requests[index];
+            final hasReplies = request.replyCount > 0;
 
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 10),
-      child: ListTile(
-        leading: const CircleAvatar(child: Icon(Icons.forum_outlined)),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-        subtitle: Text(subtitle),
-        trailing: Text(
-          status,
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.primary,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ),
+            return Card(
+              elevation: 0,
+              color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.4),
+              margin: const EdgeInsets.only(bottom: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: BorderSide(color: Colors.orange.withOpacity(0.5), width: 1),
+              ),
+              child: ListTile(
+                contentPadding: const EdgeInsets.all(16),
+                title: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.shade100,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        'REQUEST',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.orange.shade800,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      request.title,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Posted by ${request.authorName} • ${request.createdAtLabel}',
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                  ],
+                ),
+                trailing: FilledButton.tonal(
+                  onPressed: () {
+                    // Navigate to a reply thread or show dialog
+                  },
+                  child: Text(hasReplies ? '${request.replyCount} Replies' : 'Reply'),
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

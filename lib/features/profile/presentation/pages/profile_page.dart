@@ -292,7 +292,7 @@ class _DayChip extends StatelessWidget {
         child: Text(
           day,
           style: TextStyle(
-            color: active ? Colors.blue : Theme.of(context).colorScheme.onSurface,
+            color: active ? Colors.white : Theme.of(context).colorScheme.onSurface,
             fontWeight: FontWeight.w700,
           ),
         ),

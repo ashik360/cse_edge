@@ -38,12 +38,12 @@ class CourseCard extends StatelessWidget {
             // --- SECTION 1: PREVIOUS QUESTIONS & QUIZ ---
             _buildSectionHeader(context, "Subject Exam Essentials"),
             _UnitTile(
-              unit: const CourseUnit(title: 'Subject Previous Questions', type: UnitType.previousQuestion),
+              unit: const CourseUnit(title: 'Previous Questions', type: UnitType.previousQuestion),
               onTap: () => onTapUnit(const CourseUnit(title: 'Previous Questions', type: UnitType.previousQuestion)),
             ),
             _UnitTile(
-              unit: const CourseUnit(title: 'PYQ Based Quiz Test', type: UnitType.quiz),
-              onTap: () => onTapUnit(const CourseUnit(title: 'PYQ Based Quiz', type: UnitType.quiz)),
+              unit: const CourseUnit(title: 'PQ Based Quiz Test', type: UnitType.quiz),
+              onTap: () => onTapUnit(const CourseUnit(title: 'PQ Based Quiz', type: UnitType.quiz)),
             ),
             
             const Padding(

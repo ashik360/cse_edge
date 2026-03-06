@@ -1,7 +1,7 @@
 import 'package:cse_edge/core/firebase/firebase_bootstrap.dart';
 import 'package:cse_edge/features/auth/data/auth_service.dart';
 import 'package:cse_edge/features/auth/presentation/pages/auth_page.dart';
-import 'package:cse_edge/features/navigation/presentation/pages/main_nav_page.dart';
+import 'package:cse_edge/features/home/presentation/pages/welcome_selection_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -40,7 +40,7 @@ class _AuthGatePageState extends State<AuthGatePage> {
               FilledButton(
                 onPressed: () {
                   Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (_) => const MainNavPage()),
+                    MaterialPageRoute(builder: (_) => const WelcomeSelectionPage()),
                   );
                 },
                 child: const Text('Continue in Offline Demo Mode'),
@@ -61,7 +61,8 @@ class _AuthGatePageState extends State<AuthGatePage> {
         }
 
         if (snapshot.data != null) {
-          return const MainNavPage();
+          // MODIFIED: Send logged-in users to the Session Selector first!
+          return const WelcomeSelectionPage();
         }
 
         return AuthPage(authService: authService);

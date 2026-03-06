@@ -18,9 +18,9 @@ const List<Course> sampleCourses = [
     year: 1,
     semester: 1,
     units: [
-      CourseUnit(title: 'C Basics Chapter Note', type: UnitType.note),
-      CourseUnit(title: 'Loop & Logic Tutorials', type: UnitType.video),
-      CourseUnit(title: 'Function Drills Quiz', type: UnitType.quiz),
+      CourseUnit(title: 'Chapter Notes', type: UnitType.note),
+      CourseUnit(title: 'Video Tutorials', type: UnitType.video),
+      CourseUnit(title: 'Chapter Based Quiz', type: UnitType.quiz),
     ],
   ),
 ];
