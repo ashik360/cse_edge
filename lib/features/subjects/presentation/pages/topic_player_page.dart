@@ -1,20 +1,18 @@
 import 'package:cse_edge/features/subjects/domain/models/course.dart';
-import 'package:cse_edge/core/constants/app_strings.dart';
-import 'package:cse_edge/features/subjects/presentation/pages/document_viewer_page.dart'; // Ensure this import exists
+import 'package:cse_edge/features/subjects/presentation/pages/document_viewer_page.dart';
 import 'package:cse_edge/features/subjects/presentation/pages/quiz_player_page.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class TopicPlayerPage extends StatelessWidget {
   const TopicPlayerPage({
     required this.courseCode,
-    required this.topicTitle,
-    required this.type,
+    required this.unit,
     super.key,
   });
 
   final String courseCode;
-  final String topicTitle;
-  final UnitType type;
+  final CourseUnit unit;
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +20,10 @@ class TopicPlayerPage extends StatelessWidget {
       appBar: AppBar(
         title: Text(courseCode),
         actions: [
-          IconButton(onPressed: () {}, icon: const Icon(Icons.share_outlined)),
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.share_outlined),
+          ),
         ],
       ),
       body: Column(
@@ -34,7 +35,7 @@ class TopicPlayerPage extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               children: [
                 Text(
-                  topicTitle,
+                  unit.title,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -42,17 +43,18 @@ class TopicPlayerPage extends StatelessWidget {
                 const SizedBox(height: 8),
                 _buildTypeBadge(context),
                 const Divider(height: 32),
-
-                if (type == UnitType.video)
-                  _buildVideoPlaylistSection(context)
-                else if (type == UnitType.quiz)
+                if (unit.type == UnitType.video)
+                  _buildVideoSection(context)
+                else if (unit.type == UnitType.quiz)
                   _buildQuizStartSection(context)
+                else if (unit.type == UnitType.note ||
+                    unit.type == UnitType.previousQuestion)
+                  _buildDocumentSection(context)
                 else
-                  _buildDocumentSection(context),
+                  const Text('No content available.'),
               ],
             ),
           ),
-          _buildBottomAction(context),
         ],
       ),
     );
@@ -64,7 +66,11 @@ class TopicPlayerPage extends StatelessWidget {
       width: double.infinity,
       color: Colors.black,
       child: Center(
-        child: Icon(_iconForType(type), size: 64, color: Colors.white38),
+        child: Icon(
+          _iconForType(unit.type),
+          size: 64,
+          color: Colors.white38,
+        ),
       ),
     );
   }
@@ -77,7 +83,7 @@ class TopicPlayerPage extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
-        type.name.toUpperCase(),
+        unit.type.name.toUpperCase(),
         style: TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.bold,
@@ -87,97 +93,114 @@ class TopicPlayerPage extends StatelessWidget {
     );
   }
 
-  Widget _buildVideoPlaylistSection(BuildContext context) {
+  Widget _buildVideoSection(BuildContext context) {
+    if (unit.videos.isEmpty) {
+      return const Center(
+        child: Text('No videos added yet.'),
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          "Selected Playlists",
+          'Video Tutorials',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
         const SizedBox(height: 12),
-        _PlaylistTile(
-          title: "Chapter Concept",
-          author: "Anisul Islam",
-          duration: "25:00",
-        ),
-        _PlaylistTile(
-          title: "Problem Solving",
-          author: "Neso Academy",
-          duration: "15:00",
+        ...unit.videos.map(
+          (video) => Card(
+            child: ListTile(
+              leading: const Icon(Icons.play_circle_outline),
+              title: Text(video.title),
+              subtitle: Text(
+                [
+                  if (video.author.isNotEmpty) video.author,
+                  if (video.duration.isNotEmpty) video.duration,
+                ].join(' • '),
+              ),
+              onTap: () => _openUrl(video.url),
+            ),
+          ),
         ),
       ],
     );
   }
 
   Widget _buildQuizStartSection(BuildContext context) {
-    return const Column(
-      children: [
-        Icon(Icons.timer_outlined, size: 40, color: Colors.grey),
-        SizedBox(height: 16),
-        Text(
-          "10 Questions • 5 Minutes",
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-      ],
+    return Center(
+      child: FilledButton(
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => QuizPlayerPage(topicTitle: unit.title),
+            ),
+          );
+        },
+        child: const Text('Start Quiz'),
+      ),
     );
   }
 
   Widget _buildDocumentSection(BuildContext context) {
+    if (unit.files.isEmpty) {
+      return const Center(
+        child: Text('No files added yet.'),
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          "Study Guide",
+          'Study Materials',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
         const SizedBox(height: 12),
-        Text(AppStrings.topicDescription),
+        ...unit.files.map(
+          (file) => Card(
+            child: ListTile(
+              leading: Icon(_fileIcon(file.fileType)),
+              title: Text(file.title),
+              subtitle: Text(file.fileType.toUpperCase()),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => DocumentViewerPage(
+                      title: file.title,
+                      courseCode: courseCode,
+                      fileUrl: file.url,
+                      fileType: file.fileType,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildBottomAction(BuildContext context) {
-    String label = "Mark as Completed";
-    if (type == UnitType.quiz) label = "Start Quiz Test";
-    if (type == UnitType.video) label = "Open YouTube Playlist";
-    if (type == UnitType.note || type == UnitType.previousQuestion) {
-      label = "View Full Document";
-    }
+  Future<void> _openUrl(String url) async {
+    final uri = Uri.parse(url);
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
 
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: SizedBox(
-        width: double.infinity,
-        child: FilledButton(
-          onPressed: () {
-            // NAVIGATION LOGIC FIXED HERE
-            if (type == UnitType.quiz) {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => QuizPlayerPage(topicTitle: topicTitle),
-                ),
-              );
-            } else if (type == UnitType.note ||
-                type == UnitType.previousQuestion) {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => DocumentViewerPage(
-                    title: topicTitle,
-                    courseCode: courseCode,
-                  ),
-                ),
-              );
-            } else if (type == UnitType.video) {
-              // Logic for YouTube redirect
-            } else {
-              Navigator.of(context).pop();
-            }
-          },
-          child: Text(label),
-        ),
-      ),
-    );
+  IconData _fileIcon(String type) {
+    switch (type.toLowerCase()) {
+      case 'pdf':
+        return Icons.picture_as_pdf_rounded;
+      case 'drive':
+        return Icons.cloud_rounded;
+      case 'image':
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+        return Icons.image_rounded;
+      default:
+        return Icons.insert_drive_file_rounded;
+    }
   }
 
   IconData _iconForType(UnitType unitType) {
@@ -190,26 +213,10 @@ class TopicPlayerPage extends StatelessWidget {
         return Icons.ondemand_video_rounded;
       case UnitType.previousQuestion:
         return Icons.history_edu_rounded;
-      default:
-        return Icons.book_rounded;
+      case UnitType.flashcard:
+        return Icons.style_rounded;
+      case UnitType.mockTest:
+        return Icons.fact_check_rounded;
     }
-  }
-}
-
-class _PlaylistTile extends StatelessWidget {
-  const _PlaylistTile({
-    required this.title,
-    required this.author,
-    required this.duration,
-  });
-  final String title, author, duration;
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      leading: const Icon(Icons.play_circle_outline),
-      title: Text(title),
-      subtitle: Text(author),
-      trailing: Text(duration),
-    );
   }
 }

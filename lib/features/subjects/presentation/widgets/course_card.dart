@@ -34,18 +34,17 @@ class CourseCard extends StatelessWidget {
                   ),
             ),
             const SizedBox(height: 16),
-            
-            // --- SECTION 1: PREVIOUS QUESTIONS & QUIZ ---
+
+            // --- SECTION 1: SUBJECT EXAM ESSENTIALS (DYNAMIC) ---
             _buildSectionHeader(context, "Subject Exam Essentials"),
-            _UnitTile(
-              unit: const CourseUnit(title: 'Previous Questions', type: UnitType.previousQuestion),
-              onTap: () => onTapUnit(const CourseUnit(title: 'Previous Questions', type: UnitType.previousQuestion)),
-            ),
-            _UnitTile(
-              unit: const CourseUnit(title: 'PQ Based Quiz Test', type: UnitType.quiz),
-              onTap: () => onTapUnit(const CourseUnit(title: 'PQ Based Quiz', type: UnitType.quiz)),
-            ),
-            
+            ...course.units
+                .where((unit) =>
+                    unit.type == UnitType.previousQuestion ||
+                    unit.type == UnitType.quiz)
+                .map(
+                  (unit) => _UnitTile(unit: unit, onTap: () => onTapUnit(unit)),
+                ),
+
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 8.0),
               child: Divider(),
@@ -53,9 +52,15 @@ class CourseCard extends StatelessWidget {
 
             // --- SECTION 2: CHAPTERS & VIDEOS ---
             _buildSectionHeader(context, "Chapters & Lectures"),
-            ...course.units.map(
-              (unit) => _UnitTile(unit: unit, onTap: () => onTapUnit(unit)),
-            ),
+            ...course.units
+                .where((unit) =>
+                    unit.type == UnitType.note ||
+                    unit.type == UnitType.video ||
+                    unit.type == UnitType.flashcard ||
+                    unit.type == UnitType.mockTest)
+                .map(
+                  (unit) => _UnitTile(unit: unit, onTap: () => onTapUnit(unit)),
+                ),
           ],
         ),
       ),
@@ -119,11 +124,20 @@ class _UnitTile extends StatelessWidget {
 
   IconData _unitIcon(UnitType type) {
     switch (type) {
-      case UnitType.note: return Icons.description_outlined;
-      case UnitType.quiz: return Icons.quiz_outlined;
-      case UnitType.video: return Icons.play_circle_outline;
-      case UnitType.previousQuestion: return Icons.history_edu;
-      default: return Icons.circle_outlined;
+      case UnitType.note:
+        return Icons.description_outlined;
+      case UnitType.quiz:
+        return Icons.quiz_outlined;
+      case UnitType.video:
+        return Icons.play_circle_outline;
+      case UnitType.previousQuestion:
+        return Icons.history_edu;
+      case UnitType.flashcard:
+        return Icons.style_rounded;
+      case UnitType.mockTest:
+        return Icons.fact_check_rounded;
+      default:
+        return Icons.circle_outlined;
     }
   }
 }

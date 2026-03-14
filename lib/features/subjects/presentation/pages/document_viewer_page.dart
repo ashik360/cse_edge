@@ -1,25 +1,85 @@
 import 'package:flutter/material.dart';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 class DocumentViewerPage extends StatefulWidget {
   const DocumentViewerPage({
     required this.title,
     required this.courseCode,
-    this.isPdf = true,
+    required this.fileUrl,
+    required this.fileType,
     super.key,
   });
 
   final String title;
   final String courseCode;
-  final bool isPdf;
+  final String fileUrl;
+  final String fileType;
 
   @override
   State<DocumentViewerPage> createState() => _DocumentViewerPageState();
 }
 
 class _DocumentViewerPageState extends State<DocumentViewerPage> {
-  double _zoomLevel = 1.0;
+  PdfViewerController? _pdfViewerController;
   int _currentPage = 1;
-  final int _totalPages = 24; // Mock data for total pages
+  int _totalPages = 0;
+  double _zoomLevel = 1.0;
+
+  late final WebViewController _webViewController;
+  bool _isWebViewReady = false;
+  bool _isLoadingWeb = true;
+
+  bool get _isPdf => widget.fileType.toLowerCase() == 'pdf';
+  bool get _isDrive => widget.fileType.toLowerCase() == 'drive';
+  bool get _isImage {
+    final type = widget.fileType.toLowerCase();
+    return type == 'image' ||
+        type == 'jpg' ||
+        type == 'jpeg' ||
+        type == 'png' ||
+        type == 'webp';
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (_isPdf) {
+      _pdfViewerController = PdfViewerController();
+    }
+
+    if (_isDrive) {
+      _webViewController =
+          WebViewController()
+            ..setJavaScriptMode(JavaScriptMode.unrestricted)
+            ..setNavigationDelegate(
+              NavigationDelegate(
+                onPageStarted: (_) {
+                  if (mounted) {
+                    setState(() => _isLoadingWeb = true);
+                  }
+                },
+                onPageFinished: (_) {
+                  if (mounted) {
+                    setState(() => _isLoadingWeb = false);
+                  }
+                },
+              ),
+            )
+            ..loadRequest(Uri.parse(widget.fileUrl));
+
+      _isWebViewReady = true;
+    }
+  }
+
+  Future<void> _openExternally() async {
+    final uri = Uri.tryParse(widget.fileUrl);
+    if (uri == null) return;
+
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,129 +90,162 @@ class _DocumentViewerPageState extends State<DocumentViewerPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(widget.title, style: const TextStyle(fontSize: 16)),
-            Text(widget.courseCode, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.primary)),
+            Text(
+              widget.courseCode,
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
           ],
         ),
         actions: [
-          IconButton(onPressed: () {}, icon: const Icon(Icons.download_rounded)),
-          IconButton(onPressed: () {}, icon: const Icon(Icons.bookmark_add_outlined)),
+          IconButton(
+            onPressed: _openExternally,
+            icon: const Icon(Icons.open_in_new_rounded),
+          ),
         ],
       ),
       body: Column(
         children: [
-          // Toolbar for Zoom and Navigation
-          _buildReaderToolbar(),
-          
-          Expanded(
-            child: GestureDetector(
-              onScaleUpdate: (details) {
-                setState(() {
-                  _zoomLevel = details.scale.clamp(1.0, 3.0);
-                });
-              },
-              child: SingleChildScrollView(
-                child: Center(
-                  child: Transform.scale(
-                    scale: _zoomLevel,
-                    child: Container(
-                      margin: const EdgeInsets.all(16),
-                      padding: const EdgeInsets.all(24),
-                      width: MediaQuery.of(context).size.width * 0.9,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 10,
-                            offset: const Offset(0, 5),
-                          )
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "LECTURE NOTES: ${widget.title}",
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                          ),
-                          const Divider(height: 32),
-                          const Text(
-                            "Key Topics Covered:\n"
-                            "• Understanding the core architecture.\n"
-                            "• Logic implementation and memory management.\n"
-                            "• Expected exam questions from this section.\n\n"
-                            "Detailed Explanation:\n"
-                            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
-                            "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. "
-                            "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris "
-                            "nisi ut aliquip ex ea commodo consequat...",
-                            style: TextStyle(fontSize: 16, height: 1.6),
-                          ),
-                          // Placeholder for diagrams
-                          Container(
-                            height: 150,
-                            margin: const EdgeInsets.symmetric(vertical: 20),
-                            decoration: BoxDecoration(
-                              color: Colors.blue.shade50,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.blue.shade100),
-                            ),
-                            child: const Center(child: Icon(Icons.account_tree_outlined, size: 50, color: Colors.blue)),
-                          ),
-                          const Text(
-                            "Formula Recap:\n"
-                            "F = m * a\n"
-                            "E = mc²\n",
-                            style: TextStyle(fontFamily: 'monospace', fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
+          _buildTopBar(),
+          Expanded(child: _buildBody()),
         ],
       ),
-      bottomNavigationBar: _buildPageIndicator(),
+      bottomNavigationBar: _buildBottomBar(),
     );
   }
 
-  Widget _buildReaderToolbar() {
+  Widget _buildTopBar() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       color: Colors.white,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              const Icon(Icons.zoom_in, size: 20),
-              const SizedBox(width: 8),
-              Text("${(_zoomLevel * 100).toInt()}%"),
-            ],
+          Text(
+            widget.fileType.toUpperCase(),
+            style: TextStyle(fontWeight: FontWeight.w600, color: Colors.blue),
           ),
-          const Text("Night Mode Off", style: TextStyle(fontSize: 12)),
-          const Icon(Icons.search, size: 20),
+          if (_isPdf) Text("Page $_currentPage / $_totalPages", selectionColor: Colors.blue,),
+          if (_isDrive) Text(_isLoadingWeb ? "Loading..." : "Google Drive", selectionColor: Colors.blue),
+          if (_isImage) Text("${(_zoomLevel * 100).toInt()}%"),
         ],
       ),
     );
   }
 
-  Widget _buildPageIndicator() {
-    return BottomAppBar(
+  Widget _buildBody() {
+    if (_isPdf) {
+      return SfPdfViewer.network(
+        widget.fileUrl,
+        controller: _pdfViewerController,
+        onPageChanged: (details) {
+          setState(() {
+            _currentPage = details.newPageNumber;
+          });
+        },
+        onDocumentLoaded: (details) {
+          setState(() {
+            _totalPages = details.document.pages.count;
+          });
+        },
+        onZoomLevelChanged: (details) {
+          setState(() {
+            _zoomLevel = details.newZoomLevel;
+          });
+        },
+      );
+    }
+
+    if (_isDrive && _isWebViewReady) {
+      return Stack(
+        children: [
+          WebViewWidget(controller: _webViewController),
+          if (_isLoadingWeb)
+            const Center(child: CircularProgressIndicator()),
+        ],
+      );
+    }
+
+    if (_isImage) {
+      return InteractiveViewer(
+        minScale: 1,
+        maxScale: 4,
+        onInteractionUpdate: (_) {},
+        child: Center(
+          child: Image.network(
+            widget.fileUrl,
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) {
+              return const Center(
+                child: Text('Failed to load image'),
+              );
+            },
+            loadingBuilder: (context, child, progress) {
+              if (progress == null) return child;
+              return const Center(child: CircularProgressIndicator());
+            },
+          ),
+        ),
+      );
+    }
+
+    return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            IconButton(onPressed: () {}, icon: const Icon(Icons.arrow_back_ios)),
-            Text("Page $_currentPage of $_totalPages", style: const TextStyle(fontWeight: FontWeight.bold)),
-            IconButton(onPressed: () {}, icon: const Icon(Icons.arrow_forward_ios)),
+            const Icon(Icons.insert_drive_file_outlined, size: 56),
+            const SizedBox(height: 16),
+            Text(
+              'This file type is not supported in-app yet.\nOpen it externally.',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              onPressed: _openExternally,
+              icon: const Icon(Icons.open_in_new),
+              label: const Text('Open File'),
+            ),
           ],
         ),
       ),
     );
+  }
+
+  Widget? _buildBottomBar() {
+    if (_isPdf) {
+      return BottomAppBar(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              IconButton(
+                onPressed: () {
+                  _pdfViewerController?.previousPage();
+                },
+                icon: const Icon(Icons.arrow_back_ios),
+              ),
+              Text(
+                "Page $_currentPage of $_totalPages",
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              IconButton(
+                onPressed: () {
+                  _pdfViewerController?.nextPage();
+                },
+                icon: const Icon(Icons.arrow_forward_ios),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return null;
   }
 }

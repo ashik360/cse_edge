@@ -1,6 +1,5 @@
-import 'package:cse_edge/core/constants/app_strings.dart';
 import 'package:cse_edge/core/firebase/notification_service.dart';
-import 'package:cse_edge/features/subjects/data/sample_course_data.dart';
+import 'package:cse_edge/features/subjects/data/course_repository.dart';
 import 'package:cse_edge/features/subjects/domain/models/course.dart';
 import 'package:cse_edge/features/subjects/presentation/pages/topic_player_page.dart';
 import 'package:cse_edge/features/subjects/presentation/widgets/course_card.dart';
@@ -25,8 +24,8 @@ class _SubjectsHomePageState extends State<SubjectsHomePage> {
   late int _selectedYear;
   late int _selectedSemester;
 
-  // Mock history of notifications to display in the new Drawer.
-  // In a production app, you would load these from SharedPreferences or SQLite.
+  final CourseRepository _courseRepository = CourseRepository();
+
   final List<Map<String, String>> _notificationHistory = [
     {
       'title': '🔥 Probable Questions Updated!',
@@ -45,25 +44,41 @@ class _SubjectsHomePageState extends State<SubjectsHomePage> {
     },
   ];
 
+  String getOrdinal(int number) {
+    if (number >= 11 && number <= 13) {
+      return "${number}th";
+    }
+
+    switch (number % 10) {
+      case 1:
+        return "${number}st";
+      case 2:
+        return "${number}nd";
+      case 3:
+        return "${number}rd";
+      default:
+        return "${number}th";
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _selectedYear = widget.initialYear;
     _selectedSemester = widget.initialSemester;
-    
-    _setupNotifications();
   }
 
-  Future<void> _setupNotifications() async {
-    for (var course in _filteredCourses) {
+  Future<void> _setupNotifications(List<Course> courses) async {
+    for (final course in courses) {
       await NotificationService.subscribeToCourse(course.code);
     }
   }
 
-  List<Course> get _filteredCourses {
-    return sampleCourses
-        .where((c) => c.year == _selectedYear && c.semester == _selectedSemester)
-        .toList();
+  Stream<List<Course>> get _coursesStream {
+    return _courseRepository.watchCourses(
+      year: _selectedYear,
+      semester: _selectedSemester,
+    );
   }
 
   void _showSemesterPicker() {
@@ -85,7 +100,7 @@ class _SubjectsHomePageState extends State<SubjectsHomePage> {
               const Divider(),
               Expanded(
                 child: ListView.builder(
-                  itemCount: 4, // 4 Years
+                  itemCount: 4,
                   itemBuilder: (context, yearIndex) {
                     final year = yearIndex + 1;
                     return ExpansionTile(
@@ -99,11 +114,15 @@ class _SubjectsHomePageState extends State<SubjectsHomePage> {
                               _selectedYear = year;
                               _selectedSemester = sem;
                             });
-                            _setupNotifications();
                             Navigator.pop(context);
                           },
-                          trailing: (_selectedYear == year && _selectedSemester == sem)
-                              ? Icon(Icons.check_circle, color: Theme.of(context).primaryColor)
+                          trailing:
+                              (_selectedYear == year &&
+                                  _selectedSemester == sem)
+                              ? Icon(
+                                  Icons.check_circle,
+                                  color: Theme.of(context).primaryColor,
+                                )
                               : null,
                         );
                       }).toList(),
@@ -118,101 +137,17 @@ class _SubjectsHomePageState extends State<SubjectsHomePage> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      // The End Drawer for Notification History
-      endDrawer: _buildNotificationDrawer(context),
-      appBar: AppBar(
-        // Modernized Title/Selector
-        title: GestureDetector(
-          onTap: _showSemesterPicker,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.5),
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.school_outlined, 
-                  size: 18, 
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  "Year $_selectedYear • Sem $_selectedSemester",
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold, 
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                const Icon(Icons.keyboard_arrow_down_rounded, size: 18),
-              ],
-            ),
-          ),
-        ),
-        actions: [
-          // Wrapped in a Builder to get the Scaffold context for opening the endDrawer
-          Builder(
-            builder: (context) {
-              return IconButton(
-                onPressed: () => Scaffold.of(context).openEndDrawer(),
-                icon: const Badge(
-                  child: Icon(Icons.notifications_none_rounded),
-                ),
-              );
-            }
-          ),
-          const SizedBox(width: 8),
-        ],
+  void _openTopic(BuildContext context, Course course, CourseUnit unit) {
+  Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (_) => TopicPlayerPage(
+        courseCode: course.code,
+        unit: unit,
       ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-        children: [
-          // Selector removed from here, now in AppBar!
-          const NightBeforeBanner(),
-          const SizedBox(height: 20),
-          if (_filteredCourses.isEmpty)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.all(32.0),
-                child: Column(
-                  children: [
-                    SizedBox(
-                      height: 60,
-                    ),
-                    Icon(Icons.cloud_off_rounded, size: 60, color: Colors.grey,),
-                    Text(
-                      "No courses added for this semester yet.",
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                  ],
-                ),
-              )
-            )
-          else
-            ..._filteredCourses.map(
-              (course) => Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: CourseCard(
-                  course: course,
-                  onTapUnit: (unit) => _openTopic(context, course, unit),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
+    ),
+  );
+}
 
-  // Modern Drawer UI for Notification History
   Widget _buildNotificationDrawer(BuildContext context) {
     return Drawer(
       child: SafeArea(
@@ -223,7 +158,10 @@ class _SubjectsHomePageState extends State<SubjectsHomePage> {
               padding: const EdgeInsets.all(20.0),
               child: Row(
                 children: [
-                  const Icon(Icons.notifications_active_rounded, color: Colors.orange),
+                  const Icon(
+                    Icons.notifications_active_rounded,
+                    color: Colors.orange,
+                  ),
                   const SizedBox(width: 12),
                   const Text(
                     "Updates",
@@ -233,7 +171,7 @@ class _SubjectsHomePageState extends State<SubjectsHomePage> {
                   IconButton(
                     onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.close),
-                  )
+                  ),
                 ],
               ),
             ),
@@ -245,10 +183,16 @@ class _SubjectsHomePageState extends State<SubjectsHomePage> {
                 itemBuilder: (context, index) {
                   final notif = _notificationHistory[index];
                   return ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 8,
+                    ),
                     title: Text(
                       notif['title']!,
-                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
                     ),
                     subtitle: Padding(
                       padding: const EdgeInsets.only(top: 4.0),
@@ -259,7 +203,10 @@ class _SubjectsHomePageState extends State<SubjectsHomePage> {
                           const SizedBox(height: 6),
                           Text(
                             notif['time']!,
-                            style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.primary),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
                           ),
                         ],
                       ),
@@ -274,14 +221,131 @@ class _SubjectsHomePageState extends State<SubjectsHomePage> {
     );
   }
 
-  void _openTopic(BuildContext context, Course course, CourseUnit unit) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => TopicPlayerPage(
-          courseCode: course.code,
-          topicTitle: unit.title,
-          type: unit.type,
+  Widget _buildEmptyState() {
+    return const Center(
+      child: Padding(
+        padding: EdgeInsets.all(32.0),
+        child: Column(
+          children: [
+            SizedBox(height: 60),
+            Icon(Icons.cloud_off_rounded, size: 60, color: Colors.grey),
+            SizedBox(height: 8),
+            Text(
+              "No courses added for this semester yet.",
+              style: TextStyle(color: Colors.grey),
+            ),
+          ],
         ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      endDrawer: _buildNotificationDrawer(context),
+      appBar: AppBar(
+        title: GestureDetector(
+          onTap: _showSemesterPicker,
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: MediaQuery.of(context).size.width * .18,
+              vertical: 8,
+            ),
+            decoration: BoxDecoration(
+              color: Theme.of(
+                context,
+              ).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: Theme.of(
+                  context,
+                ).colorScheme.outlineVariant.withOpacity(0.5),
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.school_outlined,
+                  size: 18,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  " ${getOrdinal(_selectedYear)} Year • $_selectedSemester Sem",
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                const Icon(Icons.keyboard_arrow_down_rounded, size: 18),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          Builder(
+            builder: (context) {
+              return IconButton(
+                onPressed: () => Scaffold.of(context).openEndDrawer(),
+                icon: const Badge(
+                  child: Icon(Icons.notifications_none_rounded),
+                ),
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
+      body: StreamBuilder<List<Course>>(
+        stream: _coursesStream,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  'Failed to load courses.\n${snapshot.error}',
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            );
+          }
+
+          final courses = snapshot.data ?? const [];
+
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted && courses.isNotEmpty) {
+              _setupNotifications(courses);
+            }
+          });
+
+          return ListView(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+            children: [
+              const NightBeforeBanner(),
+              const SizedBox(height: 20),
+              if (courses.isEmpty)
+                _buildEmptyState()
+              else
+                ...courses.map(
+                  (course) => Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: CourseCard(
+                      course: course,
+                      onTapUnit: (unit) => _openTopic(context, course, unit),
+                    ),
+                  ),
+                ),
+            ],
+          );
+        },
       ),
     );
   }
